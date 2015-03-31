@@ -12,6 +12,8 @@ Cumulus is good, but I prefer something based on a more traditional templating l
 
 Create a standard AWS Cloudformation template, adding Mustache {{ tags }} for the parts you wish to be dynamically substituted
 
+my-cf-template.json:
+
 ```
 ...
 "Tags":[
@@ -23,6 +25,7 @@ Next, create a JSON file to define the stack and fill in the tags
 
 ```
 {
+  "CF_TEMPLATE": "my-cf-template.json",
   "STACK_NAME": "MyStackProd",
   "STACK_REGION": "us-east-1",
   "phase": "Prod"
@@ -31,5 +34,5 @@ Next, create a JSON file to define the stack and fill in the tags
 
 Then run simplecf to generate the template
 
-`simplecf.py -t my_cf_template.json -d prod.json`
+`simplecf.py -d prod.json`
 

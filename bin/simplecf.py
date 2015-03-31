@@ -12,16 +12,22 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
+from boto import cloudformation
 import collections
 import os
 import pystache
 import json
 import argparse
 
-def json_clean(path):
-    check_file_exists(path)
-    with open(path) as file_handle:
-        raise NotImplementedError
+def fetch_stack_template(stack_name, stack_region):
+    conn = cloudformation.connect_to_region(stack_region)
+    template = conn.get_template(stack_name)
+    return json_clean(template)
+
+def json_clean(json_str):
+    json_data = json.loads(json_str)
+    return json.dumps(
+        json_data, indent=4, separators=(":", ","), sort_keys=True)
 
 def json_load(path):
     check_file_exists(path)
@@ -45,9 +51,10 @@ def write_file_text(path, text):
 def validate_data_file(path):
     raise NotImplementedError
 
-def escape_template(cf_template, data_file):
-    cf_text = read_file_text(cf_template)
+def escape_template(data_file):
     data_json = json_load(data_file)
+    cf_template = data_json["CF_TEMPLATE"]
+    cf_text = read_file_text(cf_template)
     result = pystache.render(cf_text, data_json)
     outfile = "{0}.json".format(data_json["STACK_NAME"])
     write_file_text(outfile, result)
@@ -55,12 +62,11 @@ def escape_template(cf_template, data_file):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--template", dest="template")
     parser.add_argument("-d", "--data-file", dest="data_file")
     args = parser.parse_args()
-    if not all((args.template, args.data_file)):
-        print("Error:  Must specify -t and -d")
+    if not args.data_file:
+        print("Error:  Must specify -d")
         exit(1)
-    escape_template(args.template, args.data_file)
+    escape_template(args.data_file)
 
 main()
