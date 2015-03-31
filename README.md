@@ -38,3 +38,16 @@ Then run simplecf to generate the template
 
 `simplecf.py -d prod.json`
 
+Which outputs:
+
+MyStackProd.json:
+
+```
+...
+"Tags":[
+  {"Key": "Phase", "Value": "Prod"}
+]
+...
+```
+
+Run simplecf.py with --help to see various other tools and options.
