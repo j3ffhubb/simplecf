@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
+import collections
 import os
 import pystache
 import json
@@ -50,15 +51,16 @@ def escape_template(cf_template, data_file):
     result = pystache.render(cf_text, data_json)
     outfile = "{0}.json".format(data_json["STACK_NAME"])
     write_file_text(outfile, result)
-
+    print("Created {0}".format(outfile))
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-t", "--template", dest="template")
     parser.add_argument("-d", "--data-file", dest="data_file")
     args = parser.parse_args()
-    if not args.template or args.data_file:
+    if not all((args.template, args.data_file)):
         print("Error:  Must specify -t and -d")
         exit(1)
+    escape_template(args.template, args.data_file)
 
 main()
