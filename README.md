@@ -23,6 +23,8 @@ my-cf-template.json:
 ```
 Next, create a JSON file to define the stack and fill in the tags
 
+prod.json:
+
 ```
 {
   "CF_TEMPLATE": "my-cf-template.json",
