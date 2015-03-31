@@ -20,6 +20,8 @@ import json
 import argparse
 
 
+REQUIRED_TAGS = ("CF_TEMPLATE", "STACK_NAME", "STACK_REGION")
+
 def get_cf_conn(stack_region):
     try:
         return cloudformation.connect_to_region(stack_region)
@@ -69,10 +71,17 @@ def write_file_text(path, text):
         file_handle.write(text)
 
 def validate_data_file(path):
-    raise NotImplementedError
+    json_data = json_load(path)
+    result = [x for x in REQUIRED_TAGS if x not in json_data]
+    if result:
+        print("Error:  {0} is missing required tags {1}".format(path, result))
+        exit(1)
+    else:
+        return json_data
+
 
 def escape_template(data_file, write=True):
-    data_json = json_load(data_file)
+    data_json = validate_data_file(data_file)
     cf_template = data_json["CF_TEMPLATE"]
     cf_text = read_file_text(cf_template)
     result = pystache.render(cf_text, data_json)
