@@ -22,6 +22,7 @@ setuptools.setup(
     author_email='j3ffhubb@redhat.com',
     license='GPL 3.0',
     description='Templating system for AWS Cloudformation',
+    url='https://github.com/j3ffhubb/simplecf',
     #packages=setuptools.find_packages(),
     #include_package_data=True,
     install_requires=['argparse', 'boto', 'pystache'],
