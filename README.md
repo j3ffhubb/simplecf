@@ -1,5 +1,3 @@
-#Warning, pre-alpha software, don't use
-
 #What is simplecf?
 
 simplecf is a templating system for AWS Cloudformation, similar to Cumulus.
