@@ -55,8 +55,14 @@ def json_clean(json_str):
 
 def json_load(path):
     check_file_exists(path)
-    with open(path) as file_handle:
-        return json.load(file_handle)
+    try:
+        with open(path) as file_handle:
+            return json.load(file_handle)
+    except Exception as ex:
+        print("Error loading {0} as JSON, please verify that "
+            "it is valid JSON".format(path))
+        print(ex)
+        exit(1)
 
 def check_file_exists(path):
     if not os.path.isfile(path):
