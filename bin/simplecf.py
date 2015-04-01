@@ -74,12 +74,15 @@ def write_file_text(path, text):
 
 def validate_data_file(path):
     json_data = json_load(path)
-    result = [x for x in REQUIRED_TAGS if x not in json_data]
+    result = [x for x in REQUIRED_TAGS
+        if x not in json_data or not json_data[x].strip()]
     if result:
         print("Error:  {0} is missing required tags {1}".format(path, result))
         exit(1)
-    else:
-        return json_data
+    for k, v in json_data.items():
+        if not v.strip():
+            print("WARNING:  Key '{0}' is an empty string".format(k))
+    return json_data
 
 def extract_tags_from_template(path):
     text = read_file_text(path)
@@ -93,7 +96,7 @@ def generate_data_file_from_template(path, outfile):
         result[tag] = path if tag == "CF_TEMPLATE" else ""
     for tag in sorted(tags):
         result[tag] = ""
-    text = json.dumps(result, indent=4) #, separators=(":", ","))
+    text = json.dumps(result, indent=4)
     write_file_text(outfile, text)
 
 def escape_template(data_file, write=True):
@@ -122,11 +125,11 @@ def main():
         "-d", "--data-file", dest="data_file",
         help="This specifies the JSON data file containing the "
         "stack definition")
-    parser.add_argument(
+    me_group = parser.add_mutually_exclusive_group()
+    me_group.add_argument(
         "-c", "--create-data-file", dest="template",
         help="Generate an empty data file from the tags in an "
         "existing template.  Specify -d for the output file name.")
-    me_group = parser.add_mutually_exclusive_group()
     me_group.add_argument(
         "--diff", dest="diff",
         help="Print the unified diff of the local template vs. the "
