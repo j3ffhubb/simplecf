@@ -13,8 +13,10 @@ GNU General Public License for more details.
 """
 
 from boto import cloudformation
+import collections
 import difflib
 import os
+import re
 import pystache
 import json
 import argparse
@@ -79,6 +81,20 @@ def validate_data_file(path):
     else:
         return json_data
 
+def extract_tags_from_template(path):
+    text = read_file_text(path)
+    result = re.findall('{{\s*[a-zA-Z_-]+\s*}}', text)
+    return set(x.strip("{} ") for x in result)
+
+def generate_data_file_from_template(path, outfile):
+    tags = extract_tags_from_template(path)
+    result = collections.OrderedDict()
+    for tag in REQUIRED_TAGS:
+        result[tag] = path if tag == "CF_TEMPLATE" else ""
+    for tag in sorted(tags):
+        result[tag] = ""
+    text = json.dumps(result, indent=4) #, separators=(":", ","))
+    write_file_text(outfile, text)
 
 def escape_template(data_file, write=True):
     data_json = validate_data_file(data_file)
@@ -106,6 +122,10 @@ def main():
         "-d", "--data-file", dest="data_file",
         help="This specifies the JSON data file containing the "
         "stack definition")
+    parser.add_argument(
+        "-c", "--create-data-file", dest="template",
+        help="Generate an empty data file from the tags in an "
+        "existing template.  Specify -d for the output file name.")
     me_group = parser.add_mutually_exclusive_group()
     me_group.add_argument(
         "--diff", dest="diff",
@@ -122,7 +142,9 @@ def main():
     if not args.data_file:
         print("Error:  Must specify -d")
         exit(1)
-    if args.diff:
+    if args.template:
+        generate_data_file_from_template(args.template, args.data_file)
+    elif args.diff:
         diff_local_and_remote(args.data_file)
     elif args.update:
         update_stack(args.data_file)
