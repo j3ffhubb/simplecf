@@ -125,7 +125,10 @@ def update_stack(data_file, create=False):
         conn.update_stack(data_json["STACK_NAME"], result)
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Tool for managing AWS Cloudformation stacks using "
+            "Mustache {{ tags }} to dynamically substitute values.  "
+            "See https://github.com/j3ffhubb/simplecf for more details.")
     parser.add_argument(
         "-d", "--data-file", dest="data_file",
         help="This specifies the JSON data file containing the "
