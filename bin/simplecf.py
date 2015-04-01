@@ -85,9 +85,8 @@ def validate_data_file(path):
     if result:
         print("Error:  {0} is missing required tags {1}".format(path, result))
         exit(1)
-    for k, v in json_data.items():
-        if not v.strip():
-            print("WARNING:  Key '{0}' is an empty string".format(k))
+    for k in (k for k, v in json_data.items() if not v.strip()):
+        print("WARNING:  Key '{0}' is an empty string".format(k))
     return json_data
 
 def extract_tags_from_template(path):
