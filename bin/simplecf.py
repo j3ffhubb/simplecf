@@ -124,11 +124,15 @@ def escape_template(data_file, write=True):
 
 def update_stack(data_file, create=False):
     data_json, result = escape_template(data_file, write=False)
-    conn = get_cf_conn(data_json["STACK_REGION"])
+    stack_region = data_json["STACK_REGION"]
+    stack_name = data_json["STACK_NAME"]
+    conn = get_cf_conn(stack_region)
     if create:
-        conn.create_stack(data_json["STACK_NAME"], result)
+        conn.create_stack(stack_name, result)
     else:
-        conn.update_stack(data_json["STACK_NAME"], result)
+        conn.update_stack(stack_name, result)
+    print("Stack operation started for {0}/{1}, you can monitor it's "
+        "progress in the AWS web console".format(stack_region, stack_name))
 
 def main():
     parser = argparse.ArgumentParser(
