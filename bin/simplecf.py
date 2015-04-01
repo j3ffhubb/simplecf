@@ -37,15 +37,17 @@ def get_cf_conn(stack_region):
 
 def fetch_stack_template(stack_name, stack_region):
     conn = get_cf_conn(stack_region)
-    return conn.get_template(stack_name)
+    result = conn.get_template(stack_name)
+    return result['GetTemplateResponse']['GetTemplateResult']['TemplateBody']
 
 def diff_local_and_remote(data_file):
     data_json, local = escape_template(data_file, write=False)
     local = json_clean(local)
-    remote = json_clean(
-        fetch_stack_template(
-            data_json["STACK_NAME"], data_json["STACK_REGION"]))
-    diff = difflib.unified_diff(remote, local, "REMOTE", "LOCAL")
+    remote = fetch_stack_template(
+        data_json["STACK_NAME"], data_json["STACK_REGION"])
+    remote = json_clean(remote)
+    diff = difflib.unified_diff(
+        remote.split("\n"), local.split("\n"), "REMOTE", "LOCAL")
     print("\n".join(diff))
 
 def json_clean(json_str):
@@ -149,15 +151,15 @@ def main():
         help="Generate an empty data file from the tags in an "
         "existing template.  Specify -d for the output file name.")
     me_group.add_argument(
-        "--diff", dest="diff",
+        "--diff", dest="diff", action="store_true",
         help="Print the unified diff of the local template vs. the "
         "template that was used to create the current version of "
         "the stack")
     me_group.add_argument(
-        "--update", dest="update",
+        "--update", dest="update", action="store_true",
         help="Directly update the Cloudformation stack associated with -d")
     me_group.add_argument(
-        "--create", dest="create",
+        "--create", dest="create", action="store_true",
         help="Directly create the Cloudformation stack associated with -d")
     args = parser.parse_args()
     if not args.data_file:
