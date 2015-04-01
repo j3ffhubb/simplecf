@@ -21,7 +21,7 @@ my-cf-template.json:
 ]
 ...
 ```
-Next, create a JSON file to define the stack and fill in the tags
+Next, create a JSON file to define the stack and fill in the tags.  You can generate an empty data file with `simplecf.py -d prod.json -c my-cf-template.json`
 
 prod.json:
 
