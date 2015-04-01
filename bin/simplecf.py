@@ -107,6 +107,12 @@ def generate_data_file_from_template(path, outfile):
 def escape_template(data_file, write=True):
     data_json = validate_data_file(data_file)
     cf_template = data_json["CF_TEMPLATE"]
+    tags = extract_tags_from_template(cf_template)
+    missing_tags = [x for x in tags if x not in data_json]
+    if missing_tags:
+        print("Error: {0} has missing "
+            "tags {1}".format(data_file, missing_tags))
+        exit(1)
     cf_text = read_file_text(cf_template)
     result = pystache.render(cf_text, data_json)
     if write:
