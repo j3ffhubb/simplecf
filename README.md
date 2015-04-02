@@ -4,7 +4,9 @@ simplecf is a templating system for AWS Cloudformation, similar to Cumulus.
 
 #Why not use Cumulus?
 
-Cumulus is good, but I prefer something based on a more traditional templating language like Mustache, that doesn't attempt to ensure the source template still builds something valid even without Cumulus (a bad design constraint IMHO).  Cumulus accepts Mustache-style tags, but can only accept them as environment variables, and not in the Yaml files.  A pure templating-language approach is much simpler, and much easier to understand.  Rather than using 2 different data formats (JSON and YAML), simplecf uses only JSON.
+Cumulus is good, but I prefer something based on a more traditional templating language like Mustache, that doesn't attempt to ensure the source template still builds something valid even without Cumulus (a bad design constraint IMHO).  Cumulus accepts Mustache-style tags, but can only accept them as environment variables, and not in the Yaml files.
+
+A pure templating-language approach is simpler and easier to maintain, because the data file only has to do naive substitution of tags, instead of mimicking the structure of the Cloudformation template.  This also means that you could conceivably re-use data files between completely disparate templates, and eliminate a lot of boilerplate mapping code in the "Parameters" section of your templates.
 
 #How to use
 
