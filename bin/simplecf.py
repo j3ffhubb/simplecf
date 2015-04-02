@@ -22,6 +22,8 @@ import json
 import argparse
 
 
+ORIG_WD = os.getcwd()
+
 REQUIRED_TAGS = ("CF_TEMPLATE", "STACK_NAME", "STACK_REGION")
 
 def get_cf_conn(stack_region):
@@ -77,11 +79,33 @@ def read_file_text(path):
         return file_handle.read()
 
 def write_file_text(path, text):
-    with open(path, "w") as file_handle:
+    with open(os.path.join(ORIG_WD, path), "w") as file_handle:
         file_handle.write(text)
 
 def validate_data_file(path):
     json_data = json_load(path)
+
+    # All paths should be relative to the data file
+    cwd = os.path.dirname(os.path.abspath(path))
+    os.chdir(cwd)
+
+    if "IMPORT" in json_data:
+        import_list = json_data.pop("IMPORT")
+        if not isinstance(import_list, list):
+            print('ERROR:  "IMPORT" must be a list of '
+                'strings:  ["file1", "file2", ...]')
+            exit(1)
+        import_dict = {}
+        for path in import_list:
+            import_data = json_load(path)
+            for k, v in import_data.items():
+                import_dict[k] = v
+        # Override any inherited key/values with explicit values in the
+        # current data file
+        for k, v in json_data.items():
+            import_dict[k] = v
+        json_data = import_dict
+
     result = [x for x in REQUIRED_TAGS
         if x not in json_data or not json_data[x].strip()]
     if result:
@@ -90,6 +114,12 @@ def validate_data_file(path):
     for k in (k for k, v in json_data.items() if not v.strip()):
         print("WARNING:  Key '{0}' is an empty string".format(k))
     return json_data
+
+def show_data_file(path):
+    json_data = validate_data_file(path)
+    result = json.dumps(
+        json_data, indent=4, separators=(":", ","), sort_keys=True)
+    print(result)
 
 def extract_tags_from_template(path):
     text = read_file_text(path)
@@ -151,6 +181,10 @@ def main():
         help="Generate an empty data file from the tags in an "
         "existing template.  Specify -d for the output file name.")
     me_group.add_argument(
+        "--show", dest="show", action="store_true",
+        help="Perform all IMPORT's in --data-file and print the "
+        "resulting key/value pairs")
+    me_group.add_argument(
         "--diff", dest="diff", action="store_true",
         help="Print the unified diff of the local template vs. the "
         "template that was used to create the current version of "
@@ -165,10 +199,13 @@ def main():
     if not args.data_file:
         print("Error:  Must specify -d")
         exit(1)
+
     if args.template:
         generate_data_file_from_template(args.template, args.data_file)
     elif args.diff:
         diff_local_and_remote(args.data_file)
+    elif args.show:
+        show_data_file(args.data_file)
     elif args.update:
         update_stack(args.data_file)
     elif args.create:
