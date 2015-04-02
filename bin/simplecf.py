@@ -122,7 +122,7 @@ def validate_data_file(path, validate=True):
 def show_data_file(path):
     json_data = validate_data_file(path)
     result = json.dumps(
-        json_data, indent=4, separators=(":", ","), sort_keys=True)
+        json_data, indent=4, sort_keys=True)
     print(result)
 
 def extract_tags_from_template(path):
