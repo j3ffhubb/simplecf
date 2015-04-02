@@ -1,0 +1,7 @@
+{
+    "CF_TEMPLATE": "../cf_templates/single_instance.json", 
+    "STACK_NAME": "TestStack", 
+    "IMPORT": ["../region/us-west-2.json", "../phase/prod.json"],
+    "cidr_ip": "0.0.0.0/0", 
+    "instance_type": "m1.medium"
+}

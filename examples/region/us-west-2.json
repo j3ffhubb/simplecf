@@ -1,0 +1,5 @@
+{
+    "STACK_REGION": "us-west-2",
+    "image_id": "ami-4dbf9e7d",
+    "instance_key_name": "YOUR_SSH_KEY_NAME" 
+}
