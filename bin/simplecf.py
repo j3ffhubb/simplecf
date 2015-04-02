@@ -82,7 +82,7 @@ def write_file_text(path, text):
     with open(os.path.join(ORIG_WD, path), "w") as file_handle:
         file_handle.write(text)
 
-def validate_data_file(path):
+def validate_data_file(path, validate=True):
     json_data = json_load(path)
 
     # All paths should be relative to the data file
@@ -97,7 +97,7 @@ def validate_data_file(path):
             exit(1)
         import_dict = {}
         for path in import_list:
-            import_data = json_load(path)
+            import_data = validate_data_file(path, validate=False)
             for k, v in import_data.items():
                 import_dict[k] = v
         # Override any inherited key/values with explicit values in the
@@ -106,6 +106,9 @@ def validate_data_file(path):
             import_dict[k] = v
         json_data = import_dict
 
+    if not validate:
+        return json_data
+
     result = [x for x in REQUIRED_TAGS
         if x not in json_data or not json_data[x].strip()]
     if result:
@@ -113,6 +116,7 @@ def validate_data_file(path):
         exit(1)
     for k in (k for k, v in json_data.items() if not v.strip()):
         print("WARNING:  Key '{0}' is an empty string".format(k))
+
     return json_data
 
 def show_data_file(path):
