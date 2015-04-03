@@ -14,10 +14,19 @@ GNU General Public License for more details.
 
 import setuptools
 from glob import glob
+import os
+import sys
+
+simplecf_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "bin")
+
+sys.path.insert(0, simplecf_dir)
+
+import simplecf
 
 setuptools.setup(
     name="simplecf",
-    version="1.0",
+    version=simplecf.__version__,
     author="Jeff Hubbard",
     author_email='j3ffhubb@redhat.com',
     license='GPL 3.0',
@@ -26,5 +35,5 @@ setuptools.setup(
     #packages=setuptools.find_packages(),
     #include_package_data=True,
     install_requires=['argparse', 'boto', 'pystache'],
-    scripts=glob('bin/*'),
+    scripts=('bin/simplecf.py',),
 )

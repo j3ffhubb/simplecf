@@ -22,6 +22,8 @@ import json
 import argparse
 
 
+__version__ = "1.0"
+
 ORIG_WD = os.getcwd()
 
 REQUIRED_TAGS = ("CF_TEMPLATE", "STACK_NAME", "STACK_REGION")
@@ -199,7 +201,15 @@ def main():
     me_group.add_argument(
         "--create", dest="create", action="store_true",
         help="Directly create the Cloudformation stack associated with -d")
+    parser.add_argument(
+        "--version", dest="version", action="store_true",
+        help="Show the application's version number")
     args = parser.parse_args()
+
+    if args.version:
+        print(__version__)
+        exit(0)
+
     if not args.data_file:
         print("Error:  Must specify -d")
         exit(1)
@@ -217,4 +227,5 @@ def main():
     else:
         escape_template(args.data_file)
 
-main()
+if __name__ == "__main__":
+    main()
