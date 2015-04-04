@@ -13,7 +13,6 @@ GNU General Public License for more details.
 """
 
 import setuptools
-from glob import glob
 import os
 import sys
 
