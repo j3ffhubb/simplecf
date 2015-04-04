@@ -10,6 +10,13 @@ A pure templating-language approach is simpler and easier to maintain, because t
 
 #How to use
 
+You can install using pip:
+
+```
+#As root
+pip install simplecf
+```
+
 Create a standard AWS Cloudformation template, adding Mustache {{ tags }} for the parts you wish to be dynamically substituted
 
 my-cf-template.json:
