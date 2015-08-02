@@ -16,16 +16,9 @@ import setuptools
 import os
 import sys
 
-simplecf_dir = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "bin")
-
-sys.path.insert(0, simplecf_dir)
-
-import simplecf
-
 setuptools.setup(
     name="simplecf",
-    version=simplecf.__version__,
+    version="1.0.1",
     author="Jeff Hubbard",
     author_email='j3ffhubb@redhat.com',
     license='GPL 3.0',
