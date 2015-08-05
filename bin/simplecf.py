@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
+import boto
 from boto import cloudformation
 import collections
 import difflib
@@ -20,7 +21,7 @@ import re
 import pystache
 import json
 import argparse
-
+import time
 
 __version__ = "1.0.1"
 
@@ -160,17 +161,74 @@ def escape_template(data_file, write=True):
     else:
         return data_json, result
 
-def update_stack(data_file, create=False):
+def update_stack(data_file, create=False, print_status=False):
     data_json, result = escape_template(data_file, write=False)
     stack_region = data_json["STACK_REGION"]
     stack_name = data_json["STACK_NAME"]
     conn = get_cf_conn(stack_region)
     if create:
-        conn.create_stack(stack_name, result)
+        try:
+            conn.create_stack(stack_name, result)
+        except boto.exception.BotoServerError:
+            print("Error:  The requested stack already exists, use --update")
+            exit(1)
     else:
-        conn.update_stack(stack_name, result)
-    print("Stack operation started for {0}/{1}, you can monitor it's "
-        "progress in the AWS web console".format(stack_region, stack_name))
+        try:
+            conn.update_stack(stack_name, result)
+        except boto.exception.BotoServerError as ex:
+            print("Unexpected error:\n")
+            print(ex.message)
+            exit(1)
+    if print_status:
+        wait(conn, stack_name)
+    else:
+        print("Stack operation started for {0}/{1}, you can monitor it's "
+            "progress in the AWS web console".format(stack_region, stack_name))
+
+def print_stack_event(event):
+    print(" ".join(str(x) for x in (
+        event.timestamp.isoformat(),
+        event.resource_status,
+        event.resource_type,
+        event.logical_resource_id,
+        event.physical_resource_id,
+        event.resource_status_reason,
+        "\n"
+    )))
+
+def wait(conn, stack_name):
+    stack = conn.describe_stacks(stack_name)[0]
+    events = list(conn.describe_stack_events(stack_name))
+    seen_events = set((x.timestamp, x.logical_resource_id) for x in events)
+
+    print("Last 3 events:\n")
+    for event in events[:3]:
+        print_stack_event(event)
+
+    status = str(stack.stack_status)
+    print("New events:\n")
+    while not [x for x in ("COMPLETE", "FAILED") if x in status and
+    not "PROGRESS" in status]:
+        new_events = list(conn.describe_stack_events(stack_name))
+        events_to_log = []
+        for event in new_events:
+            id_tuple = (event.timestamp, event.logical_resource_id)
+            if id_tuple not in seen_events:
+                seen_events.add(id_tuple)
+                events_to_log.append(event)
+        for event in reversed(events_to_log):
+            print_stack_event(event)
+        stack.update()
+        status = str(stack.stack_status)
+        time.sleep(5)
+    print("{0}\n".format(status))
+    if "FAIL" in status:
+        exit(1)
+    elif "COMPLETE" in status:
+        exit(0)
+    else:
+        exit(2)
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -203,6 +261,10 @@ def main():
         "--create", dest="create", action="store_true",
         help="Directly create the Cloudformation stack associated with -d")
     parser.add_argument(
+        "-w", "--wait", dest="wait", action="store_true",
+        help="Wait for the stack operation to finish while printing stack "
+        "events before exiting")
+    parser.add_argument(
         "--version", dest="version", action="store_true",
         help="Show the application's version number")
     args = parser.parse_args()
@@ -222,9 +284,9 @@ def main():
     elif args.show:
         show_data_file(args.data_file)
     elif args.update:
-        update_stack(args.data_file)
+        update_stack(args.data_file, print_status=args.wait)
     elif args.create:
-        update_stack(args.data_file, create=True)
+        update_stack(args.data_file, create=True, print_status=args.wait)
     else:
         escape_template(args.data_file)
 
