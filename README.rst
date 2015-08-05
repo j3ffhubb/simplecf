@@ -1,28 +1,23 @@
 -  `What is simplecf? <#what-is-simplecf>`__
--  `Why not use Cumulus? <#why-not-use-cumulus>`__
 -  `How to use <#how-to-use>`__
 
 What is simplecf?
 ~~~~~~~~~~~~~~~~~
 
-simplecf is a templating system for AWS Cloudformation, similar to
-Cumulus.
+simplecf is a templating system for AWS Cloudformation that allows you
+to make many variations of a single template for maximum code re-use.
+See a simple example `HERE  <https://github.com/j3ffhubb/simplecf/tree/master/examples/>`_
 
-Why not use Cumulus?
-~~~~~~~~~~~~~~~~~~~~
+The standard use-case is that you have 4 environments {dev,qa,stage,prod}
+based on one Cloudformation template.  Rather than maintaining 4 templates
+that are mostly identical, you can add Mustache {{ tags }} to your templates
+and create simple JSON data files that specify the values.  This has
+the added benefit of eliminating the need for a lot of boilerplate mapping
+code in the "Parameters" section of your templates.
 
-Cumulus is good, but I prefer something based on a more traditional
-templating language like Mustache, that doesn't attempt to ensure the
-source template still builds something valid even without Cumulus (a bad
-design constraint IMHO). Cumulus accepts Mustache-style tags, but can
-only accept them as environment variables, and not in the Yaml files.
-
-A pure templating-language approach is simpler and easier to maintain,
-because the data file only has to do naive substitution of tags, instead
-of mimicking the structure of the Cloudformation template. This also
-means that you could conceivably re-use data files between completely
-disparate templates, and eliminate a lot of boilerplate mapping code in
-the "Parameters" section of your templates.
+simplecf also supports data file fragments;  You can create a single data
+file for each AWS region that contain region-specific data like ami-id,
+etc... and import that data file fragment into your other templates.
 
 How to use
 ~~~~~~~~~~
@@ -31,7 +26,7 @@ You can install using pip:
 
 ::
 
-    #As root
+    #As root, or alternately use --user
     pip install simplecf
 
 Create a standard AWS Cloudformation template, adding Mustache {{ tags
