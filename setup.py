@@ -18,7 +18,7 @@ import sys
 
 setuptools.setup(
     name="simplecf",
-    version="1.0.1",
+    version="1.0.2",
     author="Jeff Hubbard",
     author_email='j3ffhubb@redhat.com',
     license='GPL 3.0',
