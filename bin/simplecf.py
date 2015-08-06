@@ -262,8 +262,8 @@ def main():
         help="Directly create the Cloudformation stack associated with -d")
     parser.add_argument(
         "-w", "--wait", dest="wait", action="store_true",
-        help="Wait for the stack operation to finish while printing stack "
-        "events before exiting")
+        help="Wait for the --create or --update operation to finish "
+        "before exiting, and print the stack events to stdout as they happen")
     parser.add_argument(
         "--version", dest="version", action="store_true",
         help="Show the application's version number")
