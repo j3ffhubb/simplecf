@@ -18,7 +18,7 @@ import sys
 
 setuptools.setup(
     name="simplecf",
-    version="1.0.2",
+    version="1.1.0",
     author="Jeff Hubbard",
     author_email='j3ffhubb@redhat.com',
     license='GPL 3.0',
@@ -26,6 +26,6 @@ setuptools.setup(
     url='https://github.com/j3ffhubb/simplecf',
     #packages=setuptools.find_packages(),
     #include_package_data=True,
-    install_requires=['argparse', 'boto', 'pystache'],
+    install_requires=['argparse', 'boto3', 'pystache'],
     scripts=('bin/simplecf.py',),
 )

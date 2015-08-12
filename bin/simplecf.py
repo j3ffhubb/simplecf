@@ -12,8 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
-import boto
-from boto import cloudformation
+import boto3
 import collections
 import difflib
 import os
@@ -23,7 +22,7 @@ import json
 import argparse
 import time
 
-__version__ = "1.0.2"
+__version__ = "1.1.0"
 
 ORIG_WD = os.getcwd()
 
@@ -31,7 +30,7 @@ REQUIRED_TAGS = ("CF_TEMPLATE", "STACK_NAME", "STACK_REGION")
 
 def get_cf_conn(stack_region):
     try:
-        return cloudformation.connect_to_region(stack_region)
+        return boto3.client("cloudformation", stack_region)
     except Exception as ex:
         print("Error connecting to AWS, please ensure that you've "
             "exported the AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY "
@@ -42,8 +41,8 @@ def get_cf_conn(stack_region):
 
 def fetch_stack_template(stack_name, stack_region):
     conn = get_cf_conn(stack_region)
-    result = conn.get_template(stack_name)
-    return result['GetTemplateResponse']['GetTemplateResult']['TemplateBody']
+    result = conn.get_template(StackName=stack_name)
+    return json.dumps(result['TemplateBody'])
 
 def diff_local_and_remote(data_file):
     data_json, local = escape_template(data_file, write=False)
@@ -168,16 +167,17 @@ def update_stack(data_file, create=False, print_status=False):
     conn = get_cf_conn(stack_region)
     if create:
         try:
-            conn.create_stack(stack_name, result)
-        except boto.exception.BotoServerError:
+            conn.create_stack(StackName=stack_name, TemplateBody=result)
+        except Exception as ex:
+            print(str(ex))
             print("Error:  The requested stack already exists, use --update")
             exit(1)
     else:
         try:
-            conn.update_stack(stack_name, result)
-        except boto.exception.BotoServerError as ex:
+            conn.update_stack(StackName=stack_name, TemplateBody=result)
+        except Exception as ex:
             print("Unexpected error:\n")
-            print(ex.message)
+            print(str(ex))
             exit(1)
     if print_status:
         wait(conn, stack_name)
@@ -186,40 +186,45 @@ def update_stack(data_file, create=False, print_status=False):
             "progress in the AWS web console".format(stack_region, stack_name))
 
 def print_stack_event(event):
+    rsr = event['ResourceStatusReason'] \
+        if 'ResourceStatusReason' in event else ''
     print(" ".join(str(x) for x in (
-        event.timestamp.isoformat(),
-        event.resource_status,
-        event.resource_type,
-        event.logical_resource_id,
-        event.physical_resource_id,
-        event.resource_status_reason,
+        event['Timestamp'].isoformat(),
+        event['ResourceStatus'],
+        event['ResourceType'],
+        event['LogicalResourceId'],
+        event['PhysicalResourceId'],
+        rsr,
         "\n"
     )))
 
 def wait(conn, stack_name):
-    stack = conn.describe_stacks(stack_name)[0]
-    events = list(conn.describe_stack_events(stack_name))
-    seen_events = set((x.timestamp, x.logical_resource_id) for x in events)
+    stack = conn.describe_stacks(StackName=stack_name)["Stacks"][0]
+    events = list(
+        conn.describe_stack_events(StackName=stack_name)["StackEvents"])
+    events.sort(key=lambda x: x["Timestamp"])
+    seen_events = set((x['Timestamp'], x["LogicalResourceId"]) for x in events)
 
     print("Last 3 events:\n")
-    for event in events[:3]:
+    for event in events[-3:]:
         print_stack_event(event)
 
-    status = str(stack.stack_status)
+    status = str(stack['StackStatus'])
     print("New events:\n")
     while not [x for x in ("COMPLETE", "FAILED") if x in status and
     not "PROGRESS" in status]:
-        new_events = list(conn.describe_stack_events(stack_name))
+        new_events = list(
+            conn.describe_stack_events(StackName=stack_name)["StackEvents"])
         events_to_log = []
         for event in new_events:
-            id_tuple = (event.timestamp, event.logical_resource_id)
+            id_tuple = (event['Timestamp'], event["LogicalResourceId"])
             if id_tuple not in seen_events:
                 seen_events.add(id_tuple)
                 events_to_log.append(event)
         for event in reversed(events_to_log):
             print_stack_event(event)
-        stack.update()
-        status = str(stack.stack_status)
+        stack = conn.describe_stacks(StackName=stack_name)["Stacks"][0]
+        status = str(stack['StackStatus'])
         time.sleep(5)
     print("{0}\n".format(status))
     if "FAIL" in status:
