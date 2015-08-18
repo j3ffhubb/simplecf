@@ -12,6 +12,7 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
+import botocore
 import boto3
 import collections
 import difflib
@@ -41,7 +42,11 @@ def get_cf_conn(stack_region):
 
 def fetch_stack_template(stack_name, stack_region):
     conn = get_cf_conn(stack_region)
-    result = conn.get_template(StackName=stack_name)
+    try:
+        result = conn.get_template(StackName=stack_name)
+    except botocore.exceptions.ClientError as ex:
+        print("Error: {0}".format(ex.message))
+        exit(1)
     return json.dumps(result['TemplateBody'])
 
 def diff_local_and_remote(data_file):
