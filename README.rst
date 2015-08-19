@@ -1,3 +1,13 @@
+IMPORTANT
+~~~~~~~~~
+
+simplecf uses Boto3 from 1.1.0 forward, if you need Boto (aka Boto2) support,
+please install version 1.0.2 using this command:
+
+::
+
+    pip install simplecf==1.0.2
+
 -  `What is simplecf? <#what-is-simplecf>`__
 -  `How to use <#how-to-use>`__
 
