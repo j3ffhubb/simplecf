@@ -1,6 +1,8 @@
 IMPORTANT
 ~~~~~~~~~
 
+simplecf is one of many packages affected by `THIS BUG  <https://bitbucket.org/pypa/pypi/issues/326/some-packages-not-showing-up-when>`_ in pypi.python.org making it impossible to find in pypi or pip, searches.   You can still install with 'pip install simplecf', or browse directly to it's pypi page `HERE  <https://pypi.python.org/pypi/simplecf/1.1.0>`_
+
 simplecf uses Boto3 from 1.1.0 forward, if you need Boto (aka Boto2) support,
 please install version 1.0.2 using this command:
 
