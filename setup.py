@@ -20,7 +20,7 @@ setuptools.setup(
     name="simplecf",
     version="1.1.0",
     author="Jeff Hubbard",
-    author_email='j3ffhubb@redhat.com',
+    author_email='musikernel@gmail.com',
     license='GPL 3.0',
     description='Templating system for AWS Cloudformation',
     url='https://github.com/j3ffhubb/simplecf',
