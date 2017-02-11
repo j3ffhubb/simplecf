@@ -7,6 +7,9 @@ import os
 import sys
 import unittest
 
+import boto3
+from botocore.exceptions import ClientError
+
 if sys.version_info < (3, 0):
     from commands import getstatusoutput
 else:
@@ -34,6 +37,19 @@ def _create():
 def _show():
     status, output = _cmd("-d '{0}' --show".format(DATA_FILE))
     return json.loads(output)
+
+def _stack_exists(name, region_name='us-west-2'):
+    client = boto3.client('cloudformation', region_name=region_name)
+    try:
+        client.describe_stacks(StackName=name)
+        return True
+    except ClientError as ex:
+        error = ex.response['Error']
+        if error['Code'] != 'ValidationError' or \
+        'does not exist' not in error['Message']:
+            raise ex
+        return False
+
 
 class TestsUnit(unittest.TestCase):
     def test_create(self):
@@ -63,8 +79,19 @@ class TestsUnit(unittest.TestCase):
             self.assertIn(k, result)
             self.assertEqual(result[k], v)
 
+# Also must create a keypair named YOUR_SSH_KEY_NAME
 @unittest.skipUnless(
     all(os.getenv(x) for x in ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY')),
     'No AWS access key pair specified')
 class TestsIntegration(unittest.TestCase):
-    pass
+    def test_all(self):
+        name = 'TestStack'
+        exists = lambda: _stack_exists(name)
+        self.assertFalse(exists())
+        os.system(EXE + ' --create --wait -d "{0}"'.format(DATA_FILE))
+        self.assertTrue(exists())
+        client = boto3.client('cloudformation', region_name='us-west-2')
+        client.delete_stack(StackName=name)
+        waiter = client.get_waiter('stack_delete_complete')
+        waiter.wait(StackName=name)
+        self.assertFalse(exists())
