@@ -12,16 +12,18 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 GNU General Public License for more details.
 """
 
-import botocore
-import boto3
+import argparse
 import collections
 import difflib
+import json
 import os
 import re
-import pystache
-import json
-import argparse
 import time
+
+import botocore
+import boto3
+
+import pystache
 
 __version__ = "1.1.0"
 
